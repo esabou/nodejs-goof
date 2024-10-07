@@ -9,7 +9,7 @@ steps:
 
   - task: SnykSecurityScan@1
     inputs:
-      serviceConnectionEndpoint: 'Snyk_API_TOKEN'
+      serviceConnectionEndpoint: 'Snyk_AUTH'
       testType: 'app'
       severityThreshold: 'critical'
       monitorWhen: 'always'
