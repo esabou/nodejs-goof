@@ -1,0 +1,17 @@
+pool: Azure Pipelines
+
+steps:
+  - checkout: self
+
+  - script: |
+      npm install
+
+
+  - task: SnykSecurityScan@1
+    inputs:
+      serviceConnectionEndpoint: 'Snyk_API_TOKEN'
+      testType: 'app'
+      severityThreshold: 'critical'
+      monitorWhen: 'always'
+      failOnIssues: true
+      additionalArguments: '--fail-on=all'
