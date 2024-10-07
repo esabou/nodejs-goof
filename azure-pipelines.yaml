@@ -10,7 +10,7 @@
 pool: Azure Pipelines
 
 variables: 
-  - group: Snyk variables 
+  - group: Snyk variables
 
 steps:
   - checkout: self
