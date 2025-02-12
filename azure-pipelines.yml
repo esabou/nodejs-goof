@@ -1,19 +1,44 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# Runs 2 Snyk Products (Open Source, Container)
+# Outputs the results to the pipeline
 
-trigger:
-- main
+# Prerequisites:
+# - Configure a `mySnykToken` service endpoint in your Azure Config.
+#   https://github.com/snyk-labs/snyk-cicd-integration-examples/tree/master/AzurePipelines contains a few instructions.
+# - Install the Snyk extension
+#   https://marketplace.visualstudio.com/items?itemName=Snyk.snyk-security-scan
+# - Install the SARIF viewer extension
+#   https://marketplace.visualstudio.com/items?itemName=sariftools.scans&targetId=bf3858e2-f2d0-4e06-962a-2107402a1234
 
-pool:
-  vmImage: ubuntu-latest
+# NOTE: Change this to a different pool to run the scripts.
+pool: sebsnyk.pool 
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+  - checkout: self
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+  # .. your instructions on building the app or preparing the repository
+
+  # snyk open source
+  - task: SnykSecurityScan@1
+    continueOnError: true
+    inputs:
+      serviceConnectionEndpoint: 'SNYK_TOKEN'
+      testType: 'app'
+      # This configures a pure local scan - results are not uploaded. 
+      # If this is desired, set `monitorWhen` to 'always' and remove the `--sarif-file-output` argument.
+      
+      # This OPTIONAL step will configure the Snyk CLI to connect to the EU or AU instance of Snyk.
+      # Docs: https://docs.snyk.io/more-info/data-residency-at-snyk#cli-and-ci-pipelines-urls
+
+      # If you need to connect to the EU Instance, add --API=https://app.eu.snyk.io/api to additionalArguments
+      # If you need to connect to the AU Instance, add --API=https://app.au.snyk.io/api to additionalArguments
+      
+      monitorWhen: 'never'
+      additionalArguments: '--all-projects --sarif-file-output=CodeAnalysisLogs/snyk-open-source.sarif'
+
+
+  - task: PublishBuildArtifacts@1
+    displayName: "Publish Artifact: CodeAnalysisLogs"
+    condition: succeededOrFailed()
+    inputs:
+      PathtoPublish: $(Build.SourcesDirectory)/CodeAnalysisLogs
+      ArtifactName: CodeAnalysisLogs
