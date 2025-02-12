@@ -35,22 +35,6 @@ steps:
       monitorWhen: 'never'
       additionalArguments: '--all-projects --sarif-file-output=CodeAnalysisLogs/snyk-open-source.sarif'
 
-  # snyk container
-  # NOTE: Change this to your container name
-  - task: SnykSecurityScan@1
-    continueOnError: true
-    inputs:
-      serviceConnectionEndpoint: 'mySnykToken'
-      testType: 'container'
-      dockerImageName: 'sebsnyk/juice-shop'
-      dockerfilePath: 'Dockerfile'
-      # This configures a pure local scan - results are not uploaded. 
-      # If this is desired, set `monitorWhen` to 'always' and remove the `--sarif-file-output` argument.
-
-      # If you need to connect to the EU Instance, add --API=https://app.eu.snyk.io/api to additionalArguments
-
-      monitorWhen: 'never'
-      additionalArguments: '--sarif-file-output=CodeAnalysisLogs/snyk-container.sarif'
 
   - task: PublishBuildArtifacts@1
     displayName: "Publish Artifact: CodeAnalysisLogs"
