@@ -7,4 +7,18 @@ ignore:
         reason: None Given
         expires: 2025-04-06T08:35:29.340Z
         created: 2025-03-07T08:35:29.343Z
-patch: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  SNYK-JS-LODASH-567746:
+    - parlay > archiver > archiver-utils > lodash:
+        patched: '2025-04-07T03:43:12.198Z'
+        id: SNYK-JS-LODASH-567746
+        path: parlay > archiver > archiver-utils > lodash
+    - parlay > archiver > zip-stream > lodash:
+        patched: '2025-04-07T03:43:12.198Z'
+        id: SNYK-JS-LODASH-567746
+        path: parlay > archiver > zip-stream > lodash
+    - parlay > archiver > zip-stream > archiver-utils > lodash:
+        patched: '2025-04-07T03:43:12.198Z'
+        id: SNYK-JS-LODASH-567746
+        path: parlay > archiver > zip-stream > archiver-utils > lodash
