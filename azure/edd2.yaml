@@ -32,10 +32,8 @@ steps:
 
   # snyk code
   - script: |
-      snyk code test --json --severity-threshold=low
+      snyk code test --json --severity-threshold=low snyk-to-html -o $(Build.ArtifactStagingDirectory)/results-code.html
       RESULT=$?
-      snyk-to-html -o $(Build.ArtifactStagingDirectory)/results-code.html
-      exit $RESULT
     continueOnError: true
     displayName: 'snyk code'
 
