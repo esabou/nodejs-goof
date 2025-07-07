@@ -32,9 +32,10 @@ steps:
 
   # snyk code
   - script: |
-      snyk code test --json --severity-threshold=low
+      snyk code test --sarif-file-output=results.sarif --severity-threshold=low
       RESULT=$?
-      snyk-to-html -o $(Build.ArtifactStagingDirectory)/results-code.html
+      snyk-to-html -o $(Build.ArtifactStagingDirectory)/results-code.html < results.sarif
+      exit $RESULT
     continueOnError: true
     displayName: 'snyk code'
 
