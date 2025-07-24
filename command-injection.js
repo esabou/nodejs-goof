@@ -6,7 +6,7 @@ const { exec } = require('child_process');
 // Example: /ci?host=8.8.8.8; ls
 router.get('/ci', (req, res) => {
   const host = req.query.host;
-  exec(`ping -c 1 ${host}`, (error, stdout, stderr) => {
+  execFile('ping', ['-c', '1', host], (error, stdout, stderr) => {
     if (error) {
       return res.status(500).send(`Error: ${error.message}`);
     }
