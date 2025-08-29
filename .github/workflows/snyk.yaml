@@ -53,7 +53,7 @@ jobs:
           echo "CLIENT_SECRET=$client_secret" >> $GITHUB_ENV
 
       # ---------------------------
-      # 🟢 Step 2b: Get OAuth2 Access Token for Snyk CLI
+      # 🟢 Step 3: Get OAuth2 Access Token for Snyk CLI
       # ---------------------------
       - name: Get Access Token
         run: |
@@ -66,7 +66,13 @@ jobs:
           echo "SNYK_TOKEN=$access_token" >> $GITHUB_ENV
 
       # ---------------------------
-      # ✅ Step 3: Run Snyk Scans
+      # ✅ Step 4: Authenticate to the SNYK CLI with oAuth
+      # ---------------------------
+      - name: Authenticate SNYK CLI with OAuth
+        run: snyk auth --auth-type=oauth $SNYK_OAUTH_TOKEN
+
+      # ---------------------------
+      # ✅ Step 5: Run Snyk Scans
       # ---------------------------
       - name: Run Snyk Open Source (SCA)
         run: snyk test --severity-threshold=high --json-file-output=results-sca.json
