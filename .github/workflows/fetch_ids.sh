@@ -20,14 +20,14 @@ echo "Raw API response for groups:"
 echo "$groups_json" | jq .
 
 # Check that we have groups
-groups_count=$(echo "$groups_json" | jq '.groups | length')
+groups_count=$(echo "$groups_json" | jq '.data | length')
 if [ "$groups_count" -eq 0 ]; then
   echo "❌ No groups found. Check SNYK_ADMIN_TOKEN and account permissions."
   exit 1
 fi
 
 # Select the first group (customize if needed)
-GROUP_ID=$(echo "$groups_json" | jq -r '.groups[0].id')
+GROUP_ID=$(echo "$groups_json" | jq -r '.data[0].id')
 echo "✅ Using GROUP_ID: $GROUP_ID"
 
 # -------------------------------
