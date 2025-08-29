@@ -1,4 +1,4 @@
-name: Snyk Scan with Automated Secret Rotation
+name: Snyk Scan with Dynamic ID Fetch and Automated Secret Rotation
 
 on:
   workflow_dispatch:
@@ -12,10 +12,7 @@ jobs:
 
     env:
       # 🔑 Admin token used to rotate service account secret (long-lived)
-      ADMIN_TOKEN: ${{ secrets.SNYK_ADMIN_TOKEN }}
-      # Optional if you want to fetch dynamically; otherwise set manually
-      GROUP_ID: ${{ secrets.SNYK_GROUP_ID }}
-      SERVICE_ACCOUNT_ID: ${{ secrets.SNYK_SERVICE_ACCOUNT_ID }}
+      SNYK_ADMIN_TOKEN: ${{ secrets.SNYK_ADMIN_TOKEN }}
       API_BASE: https://api.snyk.io
 
     steps:
@@ -30,13 +27,19 @@ jobs:
           echo "$HOME/.snyk/bin" >> $GITHUB_PATH
 
       # ---------------------------
-      # 🔄 Step 2: Refresh Service Account Secret
+      # 🟢 Step 1: Fetch Group & Service Account IDs dynamically
+      # ---------------------------
+      - name: Fetch Group & Service Account IDs
+        run: ./fetch_ids.sh
+
+      # ---------------------------
+      # 🟢 Step 2: Rotate Service Account Secret
       # ---------------------------
       - name: Rotate Service Account Secret
         id: rotate_secret
         run: |
           response=$(curl -s -X POST "$API_BASE/rest/groups/$GROUP_ID/service_accounts/$SERVICE_ACCOUNT_ID/secrets" \
-            -H "Authorization: token $ADMIN_TOKEN" \
+            -H "Authorization: token $SNYK_ADMIN_TOKEN" \
             -H "Content-Type: application/json" \
             -d '{"mode":"replace"}')
 
@@ -47,7 +50,7 @@ jobs:
           echo "CLIENT_SECRET=$client_secret" >> $GITHUB_ENV
 
       # ---------------------------
-      # 🔐 Step 2b: Get OAuth2 Access Token for Snyk CLI
+      # 🟢 Step 2b: Get OAuth2 Access Token for Snyk CLI
       # ---------------------------
       - name: Get Access Token
         run: |
