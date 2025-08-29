@@ -27,8 +27,12 @@ jobs:
       # ---------------------------
       # 🟢 Step 1: Fetch Group & Service Account IDs dynamically
       # ---------------------------
+      - name: Make fetch_ids.sh executable
+        run: chmod +x ./.github/workflows/fetch_ids.sh
+
       - name: Fetch Group & Service Account IDs
         run: ./.github/workflows/fetch_ids.sh
+
 
       # ---------------------------
       # 🟢 Step 2: Rotate Service Account Secret
