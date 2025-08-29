@@ -22,10 +22,8 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get install -y jq
-          npm install -g snyk-to-html
-          curl -sL https://snyk.io/install.sh | sh
-          echo "$HOME/.snyk/bin" >> $GITHUB_PATH
-
+          npm install -g snyk snyk-to-html
+          
       # ---------------------------
       # 🟢 Step 1: Fetch Group & Service Account IDs dynamically
       # ---------------------------
