@@ -1,0 +1,83 @@
+name: Snyk Scan with Automated Secret Rotation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  snyk:
+    runs-on: ubuntu-latest
+
+    env:
+      # 🔑 Admin token used to rotate service account secret (long-lived)
+      ADMIN_TOKEN: ${{ secrets.SNYK_ADMIN_TOKEN }}
+      # Optional if you want to fetch dynamically; otherwise set manually
+      GROUP_ID: ${{ secrets.SNYK_GROUP_ID }}
+      SERVICE_ACCOUNT_ID: ${{ secrets.SNYK_SERVICE_ACCOUNT_ID }}
+      API_BASE: https://api.snyk.io
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y jq
+          npm install -g snyk-to-html
+          curl -sL https://snyk.io/install.sh | sh
+          echo "$HOME/.snyk/bin" >> $GITHUB_PATH
+
+      # ---------------------------
+      # 🔄 Step 2: Refresh Service Account Secret
+      # ---------------------------
+      - name: Rotate Service Account Secret
+        id: rotate_secret
+        run: |
+          response=$(curl -s -X POST "$API_BASE/rest/groups/$GROUP_ID/service_accounts/$SERVICE_ACCOUNT_ID/secrets" \
+            -H "Authorization: token $ADMIN_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"mode":"replace"}')
+
+          client_id=$(echo "$response" | jq -r '.client_id')
+          client_secret=$(echo "$response" | jq -r '.client_secret')
+
+          echo "CLIENT_ID=$client_id" >> $GITHUB_ENV
+          echo "CLIENT_SECRET=$client_secret" >> $GITHUB_ENV
+
+      # ---------------------------
+      # 🔐 Step 2b: Get OAuth2 Access Token for Snyk CLI
+      # ---------------------------
+      - name: Get Access Token
+        run: |
+          response=$(curl -s -X POST "$API_BASE/oauth2/token" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "grant_type=client_credentials&client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET")
+
+          access_token=$(echo "$response" | jq -r .access_token)
+          echo "SNYK_OAUTH_TOKEN=$access_token" >> $GITHUB_ENV
+
+      # ---------------------------
+      # ✅ Step 3: Run Snyk Scans
+      # ---------------------------
+      - name: Run Snyk Open Source (SCA)
+        run: snyk test --severity-threshold=high --json-file-output=results-sca.json
+
+      - name: Run Snyk Code (SAST)
+        run: snyk code test --severity-threshold=high --json-file-output=results-sast.json
+
+      - name: Convert JSON to HTML reports
+        run: |
+          snyk-to-html -i results-sca.json -o results-sca.html
+          snyk-to-html -i results-sast.json -o results-sast.html
+
+      - name: Upload reports as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: snyk-reports
+          path: |
+            results-sca.json
+            results-sca.html
+            results-sast.json
+            results-sast.html
