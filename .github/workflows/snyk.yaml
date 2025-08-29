@@ -13,6 +13,7 @@ jobs:
     env:
       # 🔑 Admin token used to rotate service account secret (long-lived)
       SNYK_ADMIN_TOKEN: ${{ secrets.SNYK_ADMIN_TOKEN }}
+      GROUP_ID: ${{ secrets.GROUP_ID }}
       API_BASE: https://api.snyk.io
 
     steps:
