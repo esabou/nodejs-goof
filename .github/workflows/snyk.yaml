@@ -68,17 +68,21 @@ jobs:
       # ---------------------------
       # ✅ Step 4: Authenticate to the SNYK CLI with oAuth
       # ---------------------------
-      - name: Authenticate SNYK CLI with OAuth
-        run: snyk auth --auth-type=oauth $SNYK_OAUTH_TOKEN
+      # - name: Authenticate SNYK CLI with OAuth
+      #  run: snyk auth --auth-type=oauth $SNYK_OAUTH_TOKEN
 
       # ---------------------------
       # ✅ Step 5: Run Snyk Scans
       # ---------------------------
       - name: Run Snyk Open Source (SCA)
         run: snyk test --severity-threshold=high --json-file-output=results-sca.json
+        env:
+          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
 
       - name: Run Snyk Code (SAST)
         run: snyk code test --severity-threshold=high --json-file-output=results-sast.json
+        env:
+          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
 
       - name: Convert JSON to HTML reports
         run: |
