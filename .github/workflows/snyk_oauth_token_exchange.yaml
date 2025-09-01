@@ -57,9 +57,6 @@ jobs:
           
           echo "SNYK_OAUTH_TOKEN=$access_token" >> $GITHUB_ENV
 
-      # - name: Authenticate Snyk CLI (interactive, not needed in CI)
-      #   run: snyk auth --auth-type=oauth $SNYK_OAUTH_TOKEN
-
       - name: Run Snyk SCA Scan
         run: snyk test --severity-threshold=high --json-file-output=results-sca.json || true
         env:
