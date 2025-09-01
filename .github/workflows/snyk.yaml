@@ -1,4 +1,4 @@
-name: Snyk Scan with Dynamic ID Fetch and Automated Secret Rotation
+name: Snyk Scan with OAuth
 
 on:
   workflow_dispatch:
@@ -7,52 +7,26 @@ on:
       - main
 
 jobs:
-  snyk:
+  snyk-scan:
     runs-on: ubuntu-latest
-
-    env:
-      # 🔑 Admin token used to rotate service account secret (long-lived)
-      SNYK_ADMIN_TOKEN: ${{ secrets.SNYK_ADMIN_TOKEN }}
-      GROUP_ID: ${{ secrets.GROUP_ID }}
-      SERVICE_ACCOUNT_ID: ${{ secrets.SERVICE_ACCOUNT_ID }}
-      API_BASE: https://api.snyk.io
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Rotate Service Account
+        id: rotate
         run: |
-          sudo apt-get install -y jq
-          npm install -g snyk snyk-to-html
-          
-      # ---------------------------
-      # 🟢 Step 1: Fetch Group & Service Account IDs dynamically
-      # ---------------------------
-      #- name: Make fetch_ids.sh executable
-      #  run: chmod +x ./.github/workflows/fetch_ids.sh
-
-      #- name: Fetch Group & Service Account IDs
-      #  run: ./.github/workflows/fetch_ids.sh
-
-
-      # ---------------------------
-      # 🟢 Step 2: Rotate Service Account Secret
-      # ---------------------------
-      - name: Rotate Service Account Secret
-        id: rotate_secret
-        run: |
-          response=$(curl -s -X POST "$API_BASE/rest/groups/$GROUP_ID/service_accounts/$SERVICE_ACCOUNT_ID/secrets?version=2024-10-15" \
+          response=$(curl -s -X POST "https://api.snyk.io/rest/groups/$GROUP_ID/service_accounts/$SERVICE_ACCOUNT_ID/secrets?version=2024-10-15" \
             -H "Authorization: token $SNYK_ADMIN_TOKEN" \
             -H "Content-Type: application/vnd.api+json" \
             -d '{
               "data": {
-                "attributes": {
-                  "mode": "replace"
-                },
+                "attributes": { "mode": "replace" },
                 "type": "service_account"
               }
             }')
+
+          echo "Raw response: $response"
 
           client_id=$(echo "$response" | jq -r '.data.attributes.client_id')
           client_secret=$(echo "$response" | jq -r '.data.attributes.client_secret')
@@ -60,49 +34,38 @@ jobs:
           echo "CLIENT_ID=$client_id" >> $GITHUB_ENV
           echo "CLIENT_SECRET=$client_secret" >> $GITHUB_ENV
 
-      # ---------------------------
-      # 🟢 Step 3: Get OAuth2 Access Token for Snyk CLI
-      # ---------------------------
-      - name: Get Access Token
+      - name: Get OAuth2 Access Token
         run: |
-          response=$(curl -s -X POST "$API_BASE/oauth2/token" \
+          token_response=$(curl -s -X POST "https://api.snyk.io/oauth2/token" \
             -H "Content-Type: application/x-www-form-urlencoded" \
             -d "grant_type=client_credentials&client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET")
 
-          access_token=$(echo "$response" | jq -r .access_token)
+          echo "Token response: $token_response"
 
-          echo "SNYK_TOKEN=$access_token" >> $GITHUB_ENV
+          access_token=$(echo "$token_response" | jq -r '.access_token')
+          echo "SNYK_OAUTH_TOKEN=$access_token" >> $GITHUB_ENV
 
-      # ---------------------------
-      # ✅ Step 4: Authenticate to the SNYK CLI with oAuth
-      # ---------------------------
-      # - name: Authenticate SNYK CLI with OAuth
-      #  run: snyk auth --auth-type=oauth $SNYK_OAUTH_TOKEN
+      - name: Install Snyk CLI
+        run: npm install -g snyk
 
-      # ---------------------------
-      # ✅ Step 5: Run Snyk Scans
-      # ---------------------------
-      - name: Run Snyk Open Source (SCA)
+      - name: Auth with OAuth
+        run: snyk auth --auth-type=oauth $SNYK_OAUTH_TOKEN
+
+      - name: Run Snyk SCA Scan
         run: snyk test --severity-threshold=high --json-file-output=results-sca.json
-        env:
-          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
 
-      - name: Run Snyk Code (SAST)
+      - name: Run Snyk SAST Scan
         run: snyk code test --severity-threshold=high --json-file-output=results-sast.json
-        env:
-          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
 
-      - name: Convert JSON to HTML reports
-        run: |
-          snyk-to-html -i results-sca.json -o results-sca.html
-          snyk-to-html -i results-sast.json -o results-sast.html
-
-      - name: Upload reports as artifacts
+      - name: Upload Reports
         uses: actions/upload-artifact@v4
         with:
-          name: snyk-reports
+          name: snyk-results
           path: |
             results-sca.json
-            results-sca.html
             results-sast.json
-            results-sast.html
+
+env:
+  SNYK_ADMIN_TOKEN: ${{ secrets.SNYK_ADMIN_TOKEN }}
+  GROUP_ID: ${{ secrets.GROUP_ID }}
+  SERVICE_ACCOUNT_ID: ${{ secrets.SERVICE_ACCOUNT_ID }}
