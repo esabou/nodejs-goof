@@ -7,6 +7,12 @@ jobs:
   snyk:
     runs-on: ubuntu-latest
 
+    env:
+      SNYK_ADMIN_TOKEN: ${{ secrets.SNYK_ADMIN_TOKEN }}
+      GROUP_ID: ${{ secrets.GROUP_ID }}
+      SERVICE_ACCOUNT_ID: ${{ secrets.SERVICE_ACCOUNT_ID }}
+      API_BASE: https://api.snyk.io
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -14,26 +20,23 @@ jobs:
       - name: Rotate Service Account and Get Access Token
         id: oauth
         run: |
-          API_BASE="https://api.snyk.io"
-          GROUP_ID="${{ secrets.SNYK_GROUP_ID }}"
-          SERVICE_ACCOUNT_ID="${{ secrets.SNYK_SERVICE_ACCOUNT_ID }}"
-
-          # Rotate service account
-          response=$(curl -s -X POST "$API_BASE/rest/groups/$GROUP_ID/service_accounts/$SERVICE_ACCOUNT_ID/secrets?version=2024-10-15" \
-            -H "Authorization: token ${{ secrets.SNYK_ADMIN_TOKEN }}" \
-            -H "Content-Type: application/vnd.api+json" \
-            -d '{
-              "data": {
-                "attributes": {
-                  "mode": "replace"
-                },
-                "type": "service_account"
-              }
-            }')
-
+          response=$(curl -v -L -X POST \
+          "$API_BASE/rest/groups/$GROUP_ID/service_accounts/$SERVICE_ACCOUNT_ID/secrets?version=2024-10-15" \
+          -H "Authorization: token $SNYK_ADMIN_TOKEN" \
+          -H "Content-Type: application/vnd.api+json" \
+          -H "Accept: application/vnd.api+json" \
+          -d '{
+            "data": {
+              "attributes": {
+                "mode": "replace"
+              },
+              "type": "service_account"
+            }
+          }')
+        
           client_id=$(echo "$response" | jq -r '.data.attributes.client_id')
           client_secret=$(echo "$response" | jq -r '.data.attributes.client_secret')
-
+        
           echo "CLIENT_ID=$client_id"
           echo "CLIENT_SECRET=$client_secret"
           
