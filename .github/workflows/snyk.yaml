@@ -17,6 +17,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          npm install -g snyk snyk-to-html
+
       - name: Rotate Service Account and Get Access Token
         id: oauth
         run: |
@@ -53,9 +59,6 @@ jobs:
           access_token=$(echo "$token_response" | jq -r '.access_token')
           
           echo "SNYK_OAUTH_TOKEN=$access_token" >> $GITHUB_ENV
-        env:
-          CLIENT_ID: ${{ secrets.CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
 
       # - name: Authenticate Snyk CLI (interactive, not needed in CI)
       #   run: snyk auth --auth-type=oauth $SNYK_OAUTH_TOKEN
