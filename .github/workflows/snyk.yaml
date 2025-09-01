@@ -34,6 +34,9 @@ jobs:
           client_id=$(echo "$response" | jq -r '.data.attributes.client_id')
           client_secret=$(echo "$response" | jq -r '.data.attributes.client_secret')
 
+          echo "CLIENT_ID=$client_id"
+          echo "CLIENT_SECRET=$client_secret"
+          
           echo "CLIENT_ID=$client_id" >> $GITHUB_ENV
           echo "CLIENT_SECRET=$client_secret" >> $GITHUB_ENV
 
