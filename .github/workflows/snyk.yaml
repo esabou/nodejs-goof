@@ -44,16 +44,18 @@ jobs:
           echo "CLIENT_SECRET=$client_secret" >> $GITHUB_ENV
           
       - name: Exchange client credentials for access token
+        id: get_oauth_token
         run: |
           token_response=$(curl -s -X POST "https://api.snyk.io/oauth2/token" \
             -H "Content-Type: application/x-www-form-urlencoded" \
-            -d "grant_type=client_credentials&client_id=$client_id&client_secret=$client_secret")
+            -d "grant_type=client_credentials&client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET")
 
           access_token=$(echo "$token_response" | jq -r '.access_token')
-
-          echo "$access_token"
           
           echo "SNYK_OAUTH_TOKEN=$access_token" >> $GITHUB_ENV
+        env:
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
 
       # - name: Authenticate Snyk CLI (interactive, not needed in CI)
       #   run: snyk auth --auth-type=oauth $SNYK_OAUTH_TOKEN
