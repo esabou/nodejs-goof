@@ -57,6 +57,10 @@ jobs:
           
           echo "SNYK_OAUTH_TOKEN=$access_token" >> $GITHUB_ENV
 
+      - name: Install Node.js dependencies
+        if: ${{ exists('package.json') }}
+        run: npm ci
+
       - name: Run Snyk SCA Scan
         run: snyk test --severity-threshold=high --json-file-output=results-sca.json || true
         env:
