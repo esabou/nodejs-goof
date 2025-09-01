@@ -42,9 +42,6 @@ jobs:
         
           client_id=$(echo "$response" | jq -r '.data.attributes.client_id')
           client_secret=$(echo "$response" | jq -r '.data.attributes.client_secret')
-        
-          echo "CLIENT_ID=$client_id"
-          echo "CLIENT_SECRET=$client_secret"
           
           echo "CLIENT_ID=$client_id" >> $GITHUB_ENV
           echo "CLIENT_SECRET=$client_secret" >> $GITHUB_ENV
@@ -72,3 +69,18 @@ jobs:
         run: snyk code test --severity-threshold=high --json-file-output=results-sast.json
         env:
           SNYK_OAUTH_TOKEN: ${{ env.SNYK_OAUTH_TOKEN }}
+
+      - name: Convert Snyk JSON to HTML
+        run: | 
+          snyk-to-html -i results-sca.json -o results-sca.html
+          snyk-to-html -i results-sast.json -o results-sast.html
+
+      - name: Upload Snyk HTMLs as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: snyk-reports
+          path: |
+            results-sca.json
+            results-sca.html
+            results-sast.json
+            results-sast.html
