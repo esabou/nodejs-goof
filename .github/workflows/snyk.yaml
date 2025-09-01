@@ -84,3 +84,12 @@ jobs:
             results-sca.html
             results-sast.json
             results-sast.html
+
+      - name: Add Snyk reports links to workflow summary
+        run: |
+          echo "### Snyk Scan Reports" >> $GITHUB_STEP_SUMMARY
+          echo "- [SCA JSON](results-sca.json)" >> $GITHUB_STEP_SUMMARY
+          echo "- [SCA HTML](results-sca.html)" >> $GITHUB_STEP_SUMMARY
+          echo "- [SAST JSON](results-sast.json)" >> $GITHUB_STEP_SUMMARY
+          echo "- [SAST HTML](results-sast.html)" >> $GITHUB_STEP_SUMMARY
+
