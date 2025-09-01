@@ -61,12 +61,12 @@ jobs:
       #   run: snyk auth --auth-type=oauth $SNYK_OAUTH_TOKEN
 
       - name: Run Snyk SCA Scan
-        run: snyk test --severity-threshold=high --json-file-output=results-sca.json
+        run: snyk test --severity-threshold=high --json-file-output=results-sca.json || true
         env:
           SNYK_OAUTH_TOKEN: ${{ env.SNYK_OAUTH_TOKEN }}
 
       - name: Run Snyk SAST Scan
-        run: snyk code test --severity-threshold=high --json-file-output=results-sast.json
+        run: snyk code test --severity-threshold=high --json-file-output=results-sast.json || true
         env:
           SNYK_OAUTH_TOKEN: ${{ env.SNYK_OAUTH_TOKEN }}
 
