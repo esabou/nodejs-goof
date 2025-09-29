@@ -20,7 +20,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      - name: Snyk Test
+      - name: Snyk Code Test
         run: snyk test --sarif-file-output=snyk-sarif2.json
         continue-on-error: true
         env:
