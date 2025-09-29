@@ -1,7 +1,6 @@
 name: Snyk Oauth Scans
 
-on:
-  workflow_dispatch:
+on: [push, pull_request]
 
 jobs:
   snyk:
