@@ -9,10 +9,10 @@ jobs:
 
       - uses: snyk/actions/setup@master
 
-      - name: Authenticate Snyk
-        run: snyk auth $SNYK_TOKEN
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #- name: Authenticate Snyk
+      #  run: snyk auth $SNYK_TOKEN
+      #  env:
+      #    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Snyk Test
         run: snyk test --sarif-file-output=snyk-sarif1.json
