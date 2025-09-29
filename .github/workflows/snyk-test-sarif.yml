@@ -20,7 +20,19 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
+      - name: Snyk Test
+        run: snyk test --sarif-file-output=snyk-sarif2.json
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk-sarif1.json
+
+      - name: Upload SARIF file2
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk-sarif2.json
+
