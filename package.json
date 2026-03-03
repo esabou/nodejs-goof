@@ -42,7 +42,7 @@
     "morgan": "latest",
     "ms": "^0.7.1",
     "mysql": "^2.18.1",
-    "npmconf": "0.0.24",
+    "npmconf": "0.2.0",
     "optional": "^0.1.3",
     "parlay": "^0.0.123",
     "st": "0.2.4",
