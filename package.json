@@ -15,8 +15,8 @@
     "test": "snyk test"
   },
   "dependencies": {
-    "minimist": "1.2.5",
-    "stimulus_reflex": "3.4.0",
+    "minimist": "1.2.6",
+    "stimulus_reflex": "3.4.2",
     "adm-zip": "0.4.7",
     "body-parser": "1.9.0",
     "cfenv": "^1.0.4",
